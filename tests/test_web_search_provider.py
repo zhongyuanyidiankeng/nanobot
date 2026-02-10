@@ -91,6 +91,27 @@ async def test_web_search_grok_provider(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_web_search_grok_custom_base_url(monkeypatch):
+    fake_client = _FakeClient(
+        post_response=_FakeResponse(
+            {
+                "output_text": "Searched summary",
+                "citations": ["https://example.com/a"],
+            }
+        )
+    )
+
+    monkeypatch.setattr("nanobot.agent.tools.web.httpx.AsyncClient", lambda *args, **kwargs: fake_client)
+
+    custom_url = "https://xai-proxy.example.com/v1/responses"
+    tool = WebSearchTool(provider="grok", grok_api_key="xai-test", grok_base_url=custom_url)
+    output = await tool.execute(query="nanobot")
+
+    assert "Searched summary" in output
+    assert fake_client.last_post_url == custom_url
+
+
+@pytest.mark.asyncio
 async def test_web_search_grok_missing_key(monkeypatch):
     monkeypatch.delenv("XAI_API_KEY", raising=False)
     monkeypatch.setenv("BRAVE_API_KEY", "")

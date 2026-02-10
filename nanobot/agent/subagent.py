@@ -36,6 +36,7 @@ class SubagentManager:
         web_search_provider: str = "brave",
         grok_api_key: str | None = None,
         grok_model: str = "grok-4-1-fast",
+        grok_base_url: str | None = None,
         exec_config: "ExecToolConfig | None" = None,
         restrict_to_workspace: bool = False,
     ):
@@ -48,6 +49,7 @@ class SubagentManager:
         self.web_search_provider = web_search_provider
         self.grok_api_key = grok_api_key
         self.grok_model = grok_model
+        self.grok_base_url = grok_base_url
         self.exec_config = exec_config or ExecToolConfig()
         self.restrict_to_workspace = restrict_to_workspace
         self._running_tasks: dict[str, asyncio.Task[None]] = {}
@@ -119,6 +121,7 @@ class SubagentManager:
                     provider=self.web_search_provider,
                     grok_api_key=self.grok_api_key,
                     grok_model=self.grok_model,
+                    grok_base_url=self.grok_base_url,
                 )
             )
             tools.register(WebFetchTool())

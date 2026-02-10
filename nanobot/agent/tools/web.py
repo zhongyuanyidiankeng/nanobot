@@ -67,12 +67,14 @@ class WebSearchTool(Tool):
         provider: str = "brave",
         grok_api_key: str | None = None,
         grok_model: str = DEFAULT_GROK_MODEL,
+        grok_base_url: str | None = None,
     ):
         provider_value = (provider or "brave").strip().lower()
         self.provider = provider_value if provider_value in {"brave", "grok"} else "brave"
         self.api_key = api_key or os.environ.get("BRAVE_API_KEY", "")
         self.grok_api_key = grok_api_key or os.environ.get("XAI_API_KEY", "")
         self.grok_model = grok_model or DEFAULT_GROK_MODEL
+        self.grok_base_url = (grok_base_url or "").strip() or XAI_API_ENDPOINT
         self.max_results = max_results
 
     async def execute(self, query: str, count: int | None = None, **kwargs: Any) -> str:
@@ -121,7 +123,7 @@ class WebSearchTool(Tool):
         try:
             async with httpx.AsyncClient() as client:
                 r = await client.post(
-                    XAI_API_ENDPOINT,
+                    self.grok_base_url,
                     json=body,
                     headers={
                         "Content-Type": "application/json",

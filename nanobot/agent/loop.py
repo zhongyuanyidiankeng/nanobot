@@ -45,6 +45,7 @@ class AgentLoop:
         web_search_provider: str = "brave",
         grok_api_key: str | None = None,
         grok_model: str = "grok-4-1-fast",
+        grok_base_url: str | None = None,
         exec_config: "ExecToolConfig | None" = None,
         cron_service: "CronService | None" = None,
         restrict_to_workspace: bool = False,
@@ -61,6 +62,7 @@ class AgentLoop:
         self.web_search_provider = web_search_provider
         self.grok_api_key = grok_api_key
         self.grok_model = grok_model
+        self.grok_base_url = grok_base_url
         self.exec_config = exec_config or ExecToolConfig()
         self.cron_service = cron_service
         self.restrict_to_workspace = restrict_to_workspace
@@ -77,6 +79,7 @@ class AgentLoop:
             web_search_provider=web_search_provider,
             grok_api_key=grok_api_key,
             grok_model=grok_model,
+            grok_base_url=grok_base_url,
             exec_config=self.exec_config,
             restrict_to_workspace=restrict_to_workspace,
         )
@@ -107,6 +110,7 @@ class AgentLoop:
                 provider=self.web_search_provider,
                 grok_api_key=self.grok_api_key,
                 grok_model=self.grok_model,
+                grok_base_url=self.grok_base_url,
             )
         )
         self.tools.register(WebFetchTool())

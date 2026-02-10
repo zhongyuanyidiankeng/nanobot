@@ -359,6 +359,7 @@ def gateway(
         web_search_provider=config.tools.web.search.provider,
         grok_api_key=config.tools.web.search.grok_api_key or None,
         grok_model=config.tools.web.search.grok_model,
+        grok_base_url=config.tools.web.search.grok_base_url or None,
         exec_config=config.tools.exec,
         cron_service=cron,
         restrict_to_workspace=config.tools.restrict_to_workspace,
@@ -466,6 +467,7 @@ def agent(
         web_search_provider=config.tools.web.search.provider,
         grok_api_key=config.tools.web.search.grok_api_key or None,
         grok_model=config.tools.web.search.grok_model,
+        grok_base_url=config.tools.web.search.grok_base_url or None,
         exec_config=config.tools.exec,
         restrict_to_workspace=config.tools.restrict_to_workspace,
     )

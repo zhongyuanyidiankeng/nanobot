@@ -167,6 +167,7 @@ class WebSearchConfig(BaseModel):
     api_key: str = ""  # Brave Search API key
     grok_api_key: str = ""  # xAI API key for Grok web search
     grok_model: str = "grok-4-1-fast"
+    grok_base_url: str = ""  # Custom xAI endpoint (defaults to official xAI responses endpoint)
     max_results: int = 5
 
 

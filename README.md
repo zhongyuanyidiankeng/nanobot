@@ -646,6 +646,7 @@ You can switch `web_search` provider between Brave and Grok:
         "provider": "grok",
         "grokApiKey": "xai-...",
         "grokModel": "grok-4-1-fast",
+        "grokBaseUrl": "https://your-xai-proxy.example.com/v1/responses",
         "maxResults": 5
       }
     }
@@ -656,6 +657,9 @@ You can switch `web_search` provider between Brave and Grok:
 Provider key mapping:
 - `provider: "brave"` uses `tools.web.search.apiKey` (or `BRAVE_API_KEY` env var)
 - `provider: "grok"` uses `tools.web.search.grokApiKey` (or `XAI_API_KEY` env var)
+
+Provider URL mapping:
+- `provider: "grok"` uses `tools.web.search.grokBaseUrl` when set (defaults to `https://api.x.ai/v1/responses`)
 
 </details>
 
