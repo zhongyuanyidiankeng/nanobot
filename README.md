@@ -95,6 +95,8 @@ pip install nanobot-ai
 
 > [!TIP]
 > Set your API key in `~/.nanobot/config.json`.
+> Get API keys: [OpenRouter](https://openrouter.ai/keys) (LLM) · [Brave Search](https://brave.com/search/api/) or [xAI](https://console.x.ai/) (optional, for web search)
+> You can also change the model to `minimax/minimax-m2` for lower cost.
 > Get API keys: [OpenRouter](https://openrouter.ai/keys) (Global) · [DashScope](https://dashscope.console.aliyun.com) (Qwen) · [Brave Search](https://brave.com/search/api/) (optional, for web search)
 
 **1. Initialize**
@@ -116,6 +118,14 @@ For OpenRouter - recommended for global users:
   "agents": {
     "defaults": {
       "model": "anthropic/claude-opus-4-5"
+    }
+  },
+  "tools": {
+    "web": {
+      "search": {
+        "provider": "brave",
+        "apiKey": "BSA-xxx"
+      }
     }
   }
 }
@@ -580,6 +590,72 @@ That's it! Environment variables, model prefixing, config matching, and `nanobot
 | `detect_by_key_prefix` | Detect gateway by API key prefix | `"sk-or-"` |
 | `detect_by_base_keyword` | Detect gateway by API base URL | `"openrouter"` |
 | `strip_model_prefix` | Strip existing prefix before re-prefixing | `True` (for AiHubMix) |
+<summary><b>Full config example</b></summary>
+
+```json
+{
+  "agents": {
+    "defaults": {
+      "model": "anthropic/claude-opus-4-5"
+    }
+  },
+  "providers": {
+    "openrouter": {
+      "apiKey": "sk-or-v1-xxx"
+    },
+    "groq": {
+      "apiKey": "gsk_xxx"
+    }
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "token": "123456:ABC...",
+      "allowFrom": ["123456789"]
+    },
+    "whatsapp": {
+      "enabled": false
+    },
+    "feishu": {
+      "enabled": false,
+      "appId": "cli_xxx",
+      "appSecret": "xxx",
+      "encryptKey": "",
+      "verificationToken": "",
+      "allowFrom": []
+    }
+  },
+  "tools": {
+    "web": {
+      "search": {
+        "provider": "brave",
+        "apiKey": "BSA..."
+      }
+    }
+  }
+}
+```
+
+You can switch `web_search` provider between Brave and Grok:
+
+```json
+{
+  "tools": {
+    "web": {
+      "search": {
+        "provider": "grok",
+        "grokApiKey": "xai-...",
+        "grokModel": "grok-4-1-fast",
+        "maxResults": 5
+      }
+    }
+  }
+}
+```
+
+Provider key mapping:
+- `provider: "brave"` uses `tools.web.search.apiKey` (or `BRAVE_API_KEY` env var)
+- `provider: "grok"` uses `tools.web.search.grokApiKey` (or `XAI_API_KEY` env var)
 
 </details>
 

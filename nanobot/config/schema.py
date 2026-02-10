@@ -1,6 +1,8 @@
 """Configuration schema using Pydantic."""
 
 from pathlib import Path
+from typing import Literal
+
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings
 
@@ -161,7 +163,10 @@ class GatewayConfig(BaseModel):
 
 class WebSearchConfig(BaseModel):
     """Web search tool configuration."""
+    provider: Literal["brave", "grok"] = "brave"
     api_key: str = ""  # Brave Search API key
+    grok_api_key: str = ""  # xAI API key for Grok web search
+    grok_model: str = "grok-4-1-fast"
     max_results: int = 5
 
 

@@ -14,6 +14,9 @@ from nanobot.agent.tools.base import Tool
 # Shared constants
 USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_7_2) AppleWebKit/537.36"
 MAX_REDIRECTS = 5  # Limit redirects to prevent DoS attacks
+BRAVE_SEARCH_ENDPOINT = "https://api.search.brave.com/res/v1/web/search"
+XAI_API_ENDPOINT = "https://api.x.ai/v1/responses"
+DEFAULT_GROK_MODEL = "grok-4-1-fast"
 
 
 def _strip_tags(text: str) -> str:
@@ -44,10 +47,10 @@ def _validate_url(url: str) -> tuple[bool, str]:
 
 
 class WebSearchTool(Tool):
-    """Search the web using Brave Search API."""
+    """Search the web using Brave Search API or xAI Grok web search."""
     
     name = "web_search"
-    description = "Search the web. Returns titles, URLs, and snippets."
+    description = "Search the web via Brave or Grok. Returns results or synthesized answer with citations."
     parameters = {
         "type": "object",
         "properties": {
@@ -57,34 +60,86 @@ class WebSearchTool(Tool):
         "required": ["query"]
     }
     
-    def __init__(self, api_key: str | None = None, max_results: int = 5):
+    def __init__(
+        self,
+        api_key: str | None = None,
+        max_results: int = 5,
+        provider: str = "brave",
+        grok_api_key: str | None = None,
+        grok_model: str = DEFAULT_GROK_MODEL,
+    ):
+        provider_value = (provider or "brave").strip().lower()
+        self.provider = provider_value if provider_value in {"brave", "grok"} else "brave"
         self.api_key = api_key or os.environ.get("BRAVE_API_KEY", "")
+        self.grok_api_key = grok_api_key or os.environ.get("XAI_API_KEY", "")
+        self.grok_model = grok_model or DEFAULT_GROK_MODEL
         self.max_results = max_results
-    
+
     async def execute(self, query: str, count: int | None = None, **kwargs: Any) -> str:
+        if self.provider == "grok":
+            return await self._execute_grok(query)
+        return await self._execute_brave(query, count)
+
+    async def _execute_brave(self, query: str, count: int | None = None) -> str:
         if not self.api_key:
             return "Error: BRAVE_API_KEY not configured"
-        
+
         try:
             n = min(max(count or self.max_results, 1), 10)
             async with httpx.AsyncClient() as client:
                 r = await client.get(
-                    "https://api.search.brave.com/res/v1/web/search",
+                    BRAVE_SEARCH_ENDPOINT,
                     params={"q": query, "count": n},
                     headers={"Accept": "application/json", "X-Subscription-Token": self.api_key},
-                    timeout=10.0
+                    timeout=10.0,
                 )
                 r.raise_for_status()
-            
+
             results = r.json().get("web", {}).get("results", [])
             if not results:
                 return f"No results for: {query}"
-            
+
             lines = [f"Results for: {query}\n"]
             for i, item in enumerate(results[:n], 1):
                 lines.append(f"{i}. {item.get('title', '')}\n   {item.get('url', '')}")
                 if desc := item.get("description"):
                     lines.append(f"   {desc}")
+            return "\n".join(lines)
+        except Exception as e:
+            return f"Error: {e}"
+
+    async def _execute_grok(self, query: str) -> str:
+        if not self.grok_api_key:
+            return "Error: XAI_API_KEY not configured"
+
+        body = {
+            "model": self.grok_model,
+            "input": [{"role": "user", "content": query}],
+            "tools": [{"type": "web_search"}],
+        }
+
+        try:
+            async with httpx.AsyncClient() as client:
+                r = await client.post(
+                    XAI_API_ENDPOINT,
+                    json=body,
+                    headers={
+                        "Content-Type": "application/json",
+                        "Authorization": f"Bearer {self.grok_api_key}",
+                    },
+                    timeout=20.0,
+                )
+                r.raise_for_status()
+
+            payload = r.json()
+            content = payload.get("output_text") or "No response"
+            citations = payload.get("citations") or []
+
+            lines = [f"Results for: {query}\n", content]
+            if citations:
+                lines.append("\nSources:")
+                for i, url in enumerate(citations, 1):
+                    lines.append(f"{i}. {url}")
             return "\n".join(lines)
         except Exception as e:
             return f"Error: {e}"
